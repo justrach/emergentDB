@@ -148,12 +148,30 @@ cargo run --release --example scale_benchmark
 
 ### Starting the Server
 ```bash
-# Default (port 3000, 768 dimensions)
+# In-memory mode (default, no persistence)
 cargo run --release -p api-server
 
+# With persistence (vectors survive restart)
+DATA_DIR=./data cargo run --release -p api-server
+
 # Custom settings
-PORT=8080 VECTOR_DIM=1536 cargo run --release -p api-server
+PORT=8080 VECTOR_DIM=768 DATA_DIR=./mydata cargo run --release -p api-server
 ```
+
+### Persistence Architecture
+```
+Search: RAM ──SIMD──→ Results  (42μs, unchanged speed!)
+        ↑
+        └── Loaded from disk on startup
+
+Insert: RAM + background → Disk  (non-blocking persistence)
+```
+
+When `DATA_DIR` is set:
+- Vectors are stored in RocksDB at the specified path
+- On startup, all vectors are loaded into memory (recovery)
+- Inserts write to both memory and disk asynchronously
+- Search performance is unchanged (pure in-memory)
 
 ## API Endpoints
 
@@ -346,10 +364,10 @@ fitness = (recall^w1 x speed^w2 x memory^w3 x build^w4)^(1/sum(w))
 
 ### High Priority
 
-- [ ] **On-Device Persistence**: Add RocksDB or SQLite backend for vector storage
-  - Create database schema that initializes on first run
-  - Support recovery from disk on server restart
-  - Add `--data-dir` flag to specify storage location
+- [x] **On-Device Persistence**: RocksDB backend for vector storage ✅
+  - Set `DATA_DIR` environment variable to enable persistence
+  - Vectors automatically recovered from disk on server restart
+  - Background persistence for inserts (async, non-blocking)
 
 - [ ] **On-Device Embeddings**: Support local embedding models
   - Integrate `candle` or `ort` for on-device inference

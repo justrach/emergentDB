@@ -43,6 +43,7 @@
 pub mod simd;
 pub mod distance;
 pub mod index;
+pub mod storage;
 
 // Re-export commonly used items
 pub use distance::{cosine_similarity_simd, euclidean_distance_simd, l2_norm_simd};
@@ -52,6 +53,7 @@ pub use index::hnsw::HnswIndex;
 pub use index::ivf::IvfIndex;
 pub use index::pq::PqIndex;
 pub use index::emergent::{EmergentIndex, EmergentConfig, IndexGenome, IndexType, OptimizationPriority, Elite};
+pub use storage::{RocksDbStorage, Storage, StorageConfig, StorageError};
 
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};

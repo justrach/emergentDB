@@ -58,6 +58,10 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Testing
 criterion = "0.5"
+tempfile = "3.14"
+
+# System info
+num_cpus = "1.16"
 
 [profile.release]
 lto = true

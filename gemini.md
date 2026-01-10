@@ -423,10 +423,10 @@ kill -9 <PID>
 
 ### High Priority
 
-- [ ] **On-Device Persistence**: Add RocksDB or SQLite backend for vector storage
-  - Create database schema that initializes on first run
-  - Support recovery from disk on server restart
-  - Add `--data-dir` flag to specify storage location
+- [x] **On-Device Persistence**: RocksDB backend for vector storage ✅
+  - Set `DATA_DIR` environment variable to enable persistence
+  - Vectors automatically recovered from disk on server restart
+  - Background persistence for inserts (async, non-blocking)
 
 - [ ] **On-Device Embeddings**: Support local embedding models
   - Integrate `candle` or `ort` for on-device inference
