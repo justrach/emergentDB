@@ -54,6 +54,21 @@ The system automatically selects between HNSW, Flat, and IVF indices with evolve
 
 ## Quick Start
 
+### Running the Server
+
+```bash
+# In-memory mode (default)
+cargo run --release -p api-server
+
+# With persistence (vectors survive restart)
+DATA_DIR=./data cargo run --release -p api-server
+
+# Custom settings
+PORT=8080 VECTOR_DIM=768 DATA_DIR=./mydata cargo run --release -p api-server
+```
+
+### Using the Rust Library
+
 ```rust
 use vector_core::index::emergent::{EmergentConfig, EmergentIndex};
 
@@ -136,6 +151,30 @@ EmergentConfig::memory_efficient()
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## Persistence
+
+EmergentDB supports durable storage via RocksDB. When `DATA_DIR` is set:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PERSISTENCE MODE                         │
+│                                                             │
+│   Search: RAM ──SIMD──→ Results   (42μs, unchanged!)       │
+│           ↑                                                 │
+│           └── Loaded from disk on startup                   │
+│                                                             │
+│   Insert: RAM + async write → Disk  (non-blocking)         │
+│                                                             │
+│   Restart: Automatic recovery from RocksDB                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key benefits:**
+- Vectors survive server restarts
+- No impact on search performance (still in-memory SIMD)
+- Automatic recovery on startup
+- LZ4 compression for efficient storage
 
 ## Key Features
 
