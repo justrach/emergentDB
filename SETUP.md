@@ -70,11 +70,14 @@ RUSTFLAGS="-C target-cpu=apple-m1" cargo build --release
 
 ### 4. Start the API Server
 ```bash
-# Start with default settings (port 3000, 768 dimensions)
+# In-memory mode (default, no persistence)
 cargo run --release -p api-server
 
-# Or with custom settings
-PORT=8080 VECTOR_DIM=1536 cargo run --release -p api-server
+# With persistence (vectors survive restart)
+DATA_DIR=./data cargo run --release -p api-server
+
+# Custom settings with persistence
+PORT=8080 VECTOR_DIM=768 DATA_DIR=./mydata cargo run --release -p api-server
 ```
 
 ### 5. Start the Frontend (New Terminal)
@@ -233,8 +236,16 @@ curl http://localhost:3000/health
 |----------|---------|-------------|
 | `PORT` | `3000` | API server port |
 | `VECTOR_DIM` | `768` | Vector dimension (768 for Gemini, 1536 for OpenAI) |
+| `DATA_DIR` | - | Path for persistent storage (in-memory if not set) |
 | `GEMINI_API_KEY` | - | Gemini API key for OCR and embeddings |
 | `ENVIRONMENT` | `development` | Environment mode |
+
+### Persistence Mode
+
+When `DATA_DIR` is set, EmergentDB uses RocksDB for durable storage:
+- Vectors survive server restarts
+- Automatic recovery on startup
+- No impact on search performance (still in-memory)
 
 ### Rust Build Flags
 

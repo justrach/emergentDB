@@ -14,10 +14,12 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
 rocksdb = { workspace = true }
+num_cpus = { workspace = true }
 rand = "0.8"
 
 [dev-dependencies]
 criterion = { workspace = true }
+tempfile = { workspace = true }
 rand = "0.8"
 
 [[bench]]

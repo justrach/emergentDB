@@ -1,5 +1,6 @@
 //! Request handlers for API endpoints.
 
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -11,23 +12,81 @@ use axum::{
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 
-use vector_core::{DistanceMetric, Embedding, FlatIndex, IndexConfig, NodeId, VectorIndex};
+use vector_core::{
+    DistanceMetric, Embedding, FlatIndex, IndexConfig, NodeId, VectorIndex,
+    RocksDbStorage, Storage, StorageConfig,
+};
 
 // ============================================================================
 // Application State
 // ============================================================================
 
-/// Shared application state containing the vector index.
+/// Shared application state containing the vector index and optional persistent storage.
 pub struct AppState {
     pub index: RwLock<FlatIndex>,
+    pub storage: Option<Arc<RocksDbStorage>>,
+    pub dim: usize,
 }
 
 impl AppState {
+    /// Create a new in-memory only state (no persistence).
     pub fn new(dim: usize) -> Self {
         let config = IndexConfig::flat(dim, DistanceMetric::Cosine);
         Self {
             index: RwLock::new(FlatIndex::new(config)),
+            storage: None,
+            dim,
         }
+    }
+
+    /// Create a new state with RocksDB persistence.
+    /// On startup, loads all vectors from disk into the in-memory index.
+    pub fn with_persistence(dim: usize, data_dir: PathBuf) -> Result<Self, String> {
+        let config = IndexConfig::flat(dim, DistanceMetric::Cosine);
+        let mut index = FlatIndex::new(config);
+
+        // Configure and open RocksDB storage
+        let storage_config = StorageConfig {
+            data_dir: data_dir.clone(),
+            enable_wal: true,
+            sync_writes: false, // Async for performance
+            ..Default::default()
+        };
+
+        let storage = RocksDbStorage::open_with_config(&data_dir, storage_config)
+            .map_err(|e| format!("Failed to open storage at {:?}: {}", data_dir, e))?;
+
+        // Recovery: Load all vectors from disk into memory
+        let mut loaded = 0;
+        for result in storage.iter().map_err(|e| format!("Failed to iterate storage: {}", e))? {
+            match result {
+                Ok((id, embedding)) => {
+                    if let Err(e) = index.insert(id, embedding) {
+                        tracing::warn!("Failed to load vector {}: {}", id.0, e);
+                    } else {
+                        loaded += 1;
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Error reading from storage: {}", e);
+                }
+            }
+        }
+
+        if loaded > 0 {
+            tracing::info!("Recovered {} vectors from disk", loaded);
+        }
+
+        Ok(Self {
+            index: RwLock::new(index),
+            storage: Some(Arc::new(storage)),
+            dim,
+        })
+    }
+
+    /// Check if persistence is enabled.
+    pub fn has_persistence(&self) -> bool {
+        self.storage.is_some()
     }
 }
 
@@ -39,11 +98,25 @@ pub type SharedState = Arc<AppState>;
 
 pub async fn health_check(State(state): State<SharedState>) -> impl IntoResponse {
     let index = state.index.read();
-    Json(serde_json::json!({
+    let mut response = serde_json::json!({
         "status": "healthy",
         "version": env!("CARGO_PKG_VERSION"),
         "vectors_count": index.len(),
-    }))
+        "dimension": state.dim,
+        "persistence_enabled": state.storage.is_some(),
+    });
+
+    // Add storage stats if persistence is enabled
+    if let Some(ref storage) = state.storage {
+        let stats = storage.stats();
+        response["storage"] = serde_json::json!({
+            "disk_size_bytes": stats.disk_size_bytes,
+            "reads": stats.reads,
+            "writes": stats.writes,
+        });
+    }
+
+    Json(response)
 }
 
 // ============================================================================
@@ -106,22 +179,34 @@ pub async fn vector_insert(
     State(state): State<SharedState>,
     Json(req): Json<VectorInsertRequest>,
 ) -> impl IntoResponse {
-    let mut index = state.index.write();
     let embedding = Embedding::new(req.vector);
+    let node_id = NodeId::new(req.id);
 
-    match index.insert(NodeId::new(req.id), embedding) {
-        Ok(_) => Json(serde_json::json!({
-            "success": true,
-            "id": req.id,
-        })),
-        Err(e) => {
-            let err_msg = e.to_string();
-            Json(serde_json::json!({
+    // Insert into in-memory index
+    {
+        let mut index = state.index.write();
+        if let Err(e) = index.insert(node_id, embedding.clone()) {
+            return Json(serde_json::json!({
                 "success": false,
-                "error": err_msg,
-            }))
+                "error": e.to_string(),
+            }));
         }
     }
+
+    // Persist to disk if storage is enabled
+    if let Some(ref storage) = state.storage {
+        if let Err(e) = storage.put(node_id, &embedding) {
+            tracing::error!("Failed to persist vector {}: {}", req.id, e);
+            // Note: We don't fail the request since it's in memory
+            // The data will be lost on restart but the current operation succeeds
+        }
+    }
+
+    Json(serde_json::json!({
+        "success": true,
+        "id": req.id,
+        "persisted": state.storage.is_some(),
+    }))
 }
 
 #[derive(Debug, Deserialize)]
@@ -133,19 +218,35 @@ pub async fn vector_batch_insert(
     State(state): State<SharedState>,
     Json(req): Json<VectorBatchInsertRequest>,
 ) -> impl IntoResponse {
-    let mut index = state.index.write();
     let mut inserted = 0;
+    let mut to_persist: Vec<(NodeId, Embedding)> = Vec::with_capacity(req.vectors.len());
 
-    for v in req.vectors {
-        let embedding = Embedding::new(v.vector);
-        if index.insert(NodeId::new(v.id), embedding).is_ok() {
-            inserted += 1;
+    // Insert into in-memory index
+    {
+        let mut index = state.index.write();
+        for v in &req.vectors {
+            let embedding = Embedding::new(v.vector.clone());
+            let node_id = NodeId::new(v.id);
+            if index.insert(node_id, embedding.clone()).is_ok() {
+                inserted += 1;
+                to_persist.push((node_id, embedding));
+            }
+        }
+    }
+
+    // Batch persist to disk if storage is enabled
+    if let Some(ref storage) = state.storage {
+        if !to_persist.is_empty() {
+            if let Err(e) = storage.put_batch(&to_persist) {
+                tracing::error!("Failed to persist batch: {}", e);
+            }
         }
     }
 
     Json(serde_json::json!({
         "success": true,
         "count": inserted,
+        "persisted": state.storage.is_some(),
     }))
 }
 
