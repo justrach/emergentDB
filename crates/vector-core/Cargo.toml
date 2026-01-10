@@ -13,6 +13,7 @@ parking_lot = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+rocksdb = { workspace = true }
 rand = "0.8"
 
 [dev-dependencies]
