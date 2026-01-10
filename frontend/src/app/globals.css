@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+/* Airfoil Design System - Dark Mode First */
+:root {
+  /* Near-black backgrounds from Airfoil philosophy */
+  --background: #09090B;
+  --background-secondary: #0e0e13;
+  --background-tertiary: #141419;
+
+  /* Typography */
+  --foreground: #fafafa;
+  --foreground-muted: #a1a1aa;
+  --foreground-subtle: #71717a;
+
+  /* Accent - Blue from Airfoil */
+  --accent: #298DFF;
+  --accent-muted: #1d6fcc;
+  --accent-glow: rgba(41, 141, 255, 0.15);
+
+  /* Semantic colors for benchmarks */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* Borders */
+  --border: #27272a;
+  --border-subtle: #1f1f23;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Airfoil: Slow animations (120s mentioned, we'll use slower transitions) */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--accent-glow), 0 0 60px var(--accent-glow);
+  }
+}
+
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes counter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Monospace labels - Airfoil requirement */
+.mono-label {
+  font-family: var(--font-geist-mono), 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--foreground-muted);
+}
+
+/* Benchmark bar component */
+.benchmark-bar {
+  height: 32px;
+  background: var(--background-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.benchmark-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transform-origin: left;
+  animation: bar-grow 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Glow effect for accent elements */
+.glow-accent {
+  animation: glow 4s ease-in-out infinite;
+}
+
+/* Stats card */
+.stat-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+
+/* Database label badges */
+.db-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.db-badge-emergent {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-muted) 100%);
+  color: white;
+}
+
+.db-badge-chroma {
+  background: var(--background-tertiary);
+  border: 1px solid #f97316;
+  color: #f97316;
+}
+
+.db-badge-lance {
+  background: var(--background-tertiary);
+  border: 1px solid #a855f7;
+  color: #a855f7;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-subtle);
+}

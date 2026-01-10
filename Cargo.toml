@@ -1,0 +1,76 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/vector-core",
+    "crates/context-graph",
+    "crates/qd-engine",
+    "crates/research-client",
+    "crates/api-server",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+authors = ["EmergentDB Team"]
+description = "EmergentDB - A self-optimizing vector database using MAP-Elites quality-diversity"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.43", features = ["full"] }
+
+# Web framework
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# Parallelism
+rayon = "1.10"
+
+# Concurrency
+parking_lot = "0.12"
+dashmap = "6.1"
+
+# Storage
+rocksdb = "0.22"
+
+# SIMD (portable)
+wide = "0.7"
+bytemuck = { version = "1.19", features = ["derive"] }
+
+# Utilities
+thiserror = "2.0"
+anyhow = "1.0"
+uuid = { version = "1.11", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Testing
+criterion = "0.5"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+# Enable Apple M-series optimizations
+[profile.release.build-override]
+opt-level = 3
+
+# Target-specific optimizations for Apple Silicon
+# Build with: RUSTFLAGS="-C target-cpu=apple-m1" cargo build --release
+# Or for latest M4: RUSTFLAGS="-C target-cpu=apple-m4" cargo build --release
+
+[profile.bench]
+lto = true
+codegen-units = 1

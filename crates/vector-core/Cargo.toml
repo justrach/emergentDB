@@ -1,0 +1,32 @@
+[package]
+name = "vector-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "EmergentDB - Self-optimizing vector database with MAP-Elites quality-diversity"
+
+[dependencies]
+wide = { workspace = true }
+bytemuck = { workspace = true }
+rayon = { workspace = true }
+parking_lot = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+rand = "0.8"
+
+[dev-dependencies]
+criterion = { workspace = true }
+rand = "0.8"
+
+[[bench]]
+name = "index_bench"
+harness = false
+
+[[example]]
+name = "pdf_benchmark"
+path = "../../examples/pdf_benchmark.rs"
+
+[[example]]
+name = "scale_benchmark"
+path = "../../examples/scale_benchmark.rs"

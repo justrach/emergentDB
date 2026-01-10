@@ -1,0 +1,52 @@
+{
+  "dataset": {
+    "num_vectors": 303,
+    "dimension": 768,
+    "num_queries": 10,
+    "source": "Darwin G\u00f6del Machine paper"
+  },
+  "results": [
+    {
+      "name": "LanceDB",
+      "insert_time_ms": 37.74800000246614,
+      "search_time_us": 8978.08758309111,
+      "recall_at_5": 1.0
+    },
+    {
+      "name": "ChromaDB (HNSW)",
+      "insert_time_ms": 42.71824995521456,
+      "search_time_us": 955.2995907142758,
+      "recall_at_5": 1.0
+    },
+    {
+      "name": "EmergentDB (Flat)",
+      "insert_time_ms": 0.4,
+      "search_time_us": 313.8,
+      "recall_at_5": 1.0
+    },
+    {
+      "name": "EmergentDB (HNSW)",
+      "insert_time_ms": 555.59,
+      "search_time_us": 263.2,
+      "recall_at_5": 1.0
+    },
+    {
+      "name": "EmergentDB (IVF)",
+      "insert_time_ms": 24.5,
+      "search_time_us": 114.4,
+      "recall_at_5": 0.61
+    },
+    {
+      "name": "EmergentDB (PQ)",
+      "insert_time_ms": 33.5,
+      "search_time_us": 138.9,
+      "recall_at_5": 0.39
+    },
+    {
+      "name": "EmergentDB (Emergent Auto)",
+      "insert_time_ms": 3671.84,
+      "search_time_us": 75.2,
+      "recall_at_5": 1.0
+    }
+  ]
+}

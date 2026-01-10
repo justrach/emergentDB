@@ -1,0 +1,15 @@
+[package]
+name = "context-graph"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Ontology-based context graph for semantic relationships"
+
+[dependencies]
+vector-core = { path = "../vector-core" }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
