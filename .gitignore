@@ -24,6 +24,16 @@ dist/
 .next/
 build/
 
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Ingestion database
+examples/ingestion/*.db
+
 # Logs
 *.log
 logs/
