@@ -1,0 +1,11 @@
+Machine learning is a subset of artificial intelligence.
+
+It involves training algorithms on data to make predictions
+or decisions without being explicitly programmed.
+
+Common types of machine learning:
+- Supervised learning (classification, regression)
+- Unsupervised learning (clustering, dimensionality reduction)
+- Reinforcement learning (reward-based learning)
+
+Popular frameworks include TensorFlow, PyTorch, and scikit-learn.

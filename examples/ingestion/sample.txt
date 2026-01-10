@@ -1,0 +1,17 @@
+EmergentDB is a self-optimizing vector database.
+
+It uses the MAP-Elites evolutionary algorithm to automatically discover
+the optimal index configuration for your specific workload.
+
+Key features:
+- 44-193x faster than LanceDB
+- 10-25x faster than ChromaDB
+- 99%+ recall guarantee
+- SIMD-optimized insertion strategies
+- Automatic index type selection (Flat, HNSW, IVF)
+
+The system maintains a dual quality-diversity approach:
+1. IndexQD - evolves index types and hyperparameters
+2. InsertQD - evolves SIMD insertion strategies
+
+Built with Rust for maximum performance.

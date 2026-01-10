@@ -1,0 +1,21 @@
+# EmergentDB Document Ingestion CLI Dependencies
+
+# Google Gemini API
+google-genai>=1.0.0
+
+# Document processing
+PyPDF2>=3.0.0
+Pillow>=10.0.0
+python-magic>=0.4.27
+
+# Environment and CLI
+python-dotenv>=1.0.0
+click>=8.1.0
+rich>=13.0.0
+
+# Data handling
+numpy>=1.24.0
+requests>=2.31.0
+
+# Progress bars
+tqdm>=4.66.0
