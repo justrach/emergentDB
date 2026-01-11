@@ -1,101 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" font-family="system-ui, -apple-system, sans-serif">
-  <defs>
-    <linearGradient id="emergentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#10b981"/>
-      <stop offset="100%" style="stop-color:#059669"/>
-    </linearGradient>
-    <linearGradient id="chromaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#f59e0b"/>
-      <stop offset="100%" style="stop-color:#d97706"/>
-    </linearGradient>
-    <linearGradient id="lanceGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#6366f1"/>
-      <stop offset="100%" style="stop-color:#4f46e5"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
-    </filter>
-  </defs>
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif">
   <!-- Background -->
-  <rect width="900" height="500" fill="#0f172a"/>
+  <rect width="800" height="400" fill="#0f172a"/>
 
   <!-- Title -->
-  <text x="450" y="45" text-anchor="middle" fill="white" font-size="24" font-weight="bold">EmergentDB Benchmark: 10,000 Vectors (768-dim Gemini Embeddings)</text>
-  <text x="450" y="70" text-anchor="middle" fill="#94a3b8" font-size="14">Search Latency Comparison | Lower is Better</text>
+  <text x="400" y="35" text-anchor="middle" fill="white" font-size="22" font-weight="bold">EmergentDB vs Competitors</text>
+  <text x="400" y="58" text-anchor="middle" fill="#94a3b8" font-size="13">10,000 Vectors | 768-dim Gemini Embeddings | Search Latency (lower is better)</text>
 
-  <!-- Chart Area -->
-  <g transform="translate(120, 100)">
-    <!-- Y-Axis -->
-    <line x1="0" y1="0" x2="0" y2="300" stroke="#334155" stroke-width="2"/>
-    <text x="-15" y="0" text-anchor="end" fill="#94a3b8" font-size="11">4ms</text>
-    <text x="-15" y="75" text-anchor="end" fill="#94a3b8" font-size="11">3ms</text>
-    <text x="-15" y="150" text-anchor="end" fill="#94a3b8" font-size="11">2ms</text>
-    <text x="-15" y="225" text-anchor="end" fill="#94a3b8" font-size="11">1ms</text>
-    <text x="-15" y="300" text-anchor="end" fill="#94a3b8" font-size="11">0</text>
-
+  <!-- Chart area -->
+  <g transform="translate(50, 90)">
     <!-- Grid lines -->
-    <line x1="0" y1="75" x2="680" y2="75" stroke="#1e293b" stroke-width="1"/>
-    <line x1="0" y1="150" x2="680" y2="150" stroke="#1e293b" stroke-width="1"/>
-    <line x1="0" y1="225" x2="680" y2="225" stroke="#1e293b" stroke-width="1"/>
-    <line x1="0" y1="300" x2="680" y2="300" stroke="#334155" stroke-width="2"/>
+    <line x1="180" y1="0" x2="180" y2="240" stroke="#1e293b" stroke-width="1"/>
+    <line x1="360" y1="0" x2="360" y2="240" stroke="#1e293b" stroke-width="1"/>
+    <line x1="540" y1="0" x2="540" y2="240" stroke="#1e293b" stroke-width="1"/>
+    <line x1="720" y1="0" x2="720" y2="240" stroke="#1e293b" stroke-width="1"/>
 
-    <!-- Bars -->
-    <!-- EmergentDB HNSW m=8: 44us = 0.044ms -->
-    <rect x="40" y="296.7" width="120" height="3.3" rx="2" fill="url(#emergentGrad)" filter="url(#shadow)"/>
-    <text x="100" y="320" text-anchor="middle" fill="#10b981" font-size="13" font-weight="bold">44us</text>
-    <text x="100" y="338" text-anchor="middle" fill="#94a3b8" font-size="11">EmergentDB</text>
-    <text x="100" y="352" text-anchor="middle" fill="#64748b" font-size="10">(HNSW m=8)</text>
+    <!-- X-axis labels -->
+    <text x="180" y="260" text-anchor="middle" fill="#64748b" font-size="11">1ms</text>
+    <text x="360" y="260" text-anchor="middle" fill="#64748b" font-size="11">2ms</text>
+    <text x="540" y="260" text-anchor="middle" fill="#64748b" font-size="11">3ms</text>
+    <text x="720" y="260" text-anchor="middle" fill="#64748b" font-size="11">4ms</text>
 
-    <!-- EmergentDB HNSW m=16: 102us = 0.102ms -->
-    <rect x="200" y="292.4" width="120" height="7.6" rx="2" fill="url(#emergentGrad)" filter="url(#shadow)"/>
-    <text x="260" y="320" text-anchor="middle" fill="#10b981" font-size="13" font-weight="bold">102us</text>
-    <text x="260" y="338" text-anchor="middle" fill="#94a3b8" font-size="11">EmergentDB</text>
-    <text x="260" y="352" text-anchor="middle" fill="#64748b" font-size="10">(HNSW m=16)</text>
+    <!-- Bar 1: EmergentDB m=8 (44μs = 0.044ms) -->
+    <text x="0" y="30" fill="white" font-size="14" font-weight="500">EmergentDB</text>
+    <text x="0" y="46" fill="#94a3b8" font-size="11">(HNSW m=8)</text>
+    <rect x="180" y="18" width="8" height="32" rx="2" fill="#22c55e"/>
+    <text x="195" y="40" fill="#22c55e" font-size="13" font-weight="bold">44μs</text>
+    <rect x="260" y="26" width="50" height="18" rx="9" fill="#166534"/>
+    <text x="285" y="39" text-anchor="middle" fill="white" font-size="10" font-weight="500">100%</text>
 
-    <!-- ChromaDB: 2259us = 2.259ms -->
-    <rect x="360" y="130.6" width="120" height="169.4" rx="2" fill="url(#chromaGrad)" filter="url(#shadow)"/>
-    <text x="420" y="120" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="bold">2.26ms</text>
-    <text x="420" y="338" text-anchor="middle" fill="#94a3b8" font-size="11">ChromaDB</text>
-    <text x="420" y="352" text-anchor="middle" fill="#64748b" font-size="10">(HNSW)</text>
+    <!-- Bar 2: EmergentDB m=16 (102μs = 0.102ms) -->
+    <text x="0" y="90" fill="white" font-size="14" font-weight="500">EmergentDB</text>
+    <text x="0" y="106" fill="#94a3b8" font-size="11">(HNSW m=16)</text>
+    <rect x="180" y="78" width="18" height="32" rx="2" fill="#16a34a"/>
+    <text x="205" y="100" fill="#16a34a" font-size="13" font-weight="bold">102μs</text>
+    <rect x="275" y="86" width="50" height="18" rx="9" fill="#166534"/>
+    <text x="300" y="99" text-anchor="middle" fill="white" font-size="10" font-weight="500">100%</text>
 
-    <!-- LanceDB: 3590us = 3.59ms -->
-    <rect x="520" y="30.8" width="120" height="269.2" rx="2" fill="url(#lanceGrad)" filter="url(#shadow)"/>
-    <text x="580" y="20" text-anchor="middle" fill="#6366f1" font-size="13" font-weight="bold">3.59ms</text>
-    <text x="580" y="338" text-anchor="middle" fill="#94a3b8" font-size="11">LanceDB</text>
-    <text x="580" y="352" text-anchor="middle" fill="#64748b" font-size="10">(IVF-PQ)</text>
+    <!-- Bar 3: ChromaDB (2259μs = 2.259ms) -->
+    <text x="0" y="150" fill="white" font-size="14" font-weight="500">ChromaDB</text>
+    <text x="0" y="166" fill="#94a3b8" font-size="11">(HNSW default)</text>
+    <rect x="180" y="138" width="407" height="32" rx="2" fill="#f59e0b"/>
+    <text x="595" y="160" fill="#f59e0b" font-size="13" font-weight="bold">2.26ms</text>
+    <rect x="655" y="146" width="55" height="18" rx="9" fill="#92400e"/>
+    <text x="682" y="159" text-anchor="middle" fill="white" font-size="10" font-weight="500">99.8%</text>
+
+    <!-- Bar 4: LanceDB (3590μs = 3.59ms) -->
+    <text x="0" y="210" fill="white" font-size="14" font-weight="500">LanceDB</text>
+    <text x="0" y="226" fill="#94a3b8" font-size="11">(IVF-PQ)</text>
+    <rect x="180" y="198" width="647" height="32" rx="2" fill="#8b5cf6"/>
+    <text x="720" y="220" fill="#8b5cf6" font-size="13" font-weight="bold">3.59ms</text>
+    <rect x="655" y="206" width="55" height="18" rx="9" fill="#5b21b6"/>
+    <text x="682" y="219" text-anchor="middle" fill="white" font-size="10" font-weight="500">84.3%</text>
   </g>
 
   <!-- Speedup callouts -->
-  <g transform="translate(120, 100)">
-    <!-- Arrow from ChromaDB to EmergentDB -->
-    <path d="M 330 215 Q 240 180 170 296" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="5,3"/>
-    <text x="220" y="195" text-anchor="middle" fill="#10b981" font-size="14" font-weight="bold">51x faster</text>
+  <g transform="translate(50, 90)">
+    <!-- 51x faster arrow -->
+    <path d="M 350 154 Q 280 120 200 50" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arrowhead)"/>
+    <rect x="320" y="105" width="75" height="24" rx="4" fill="#22c55e"/>
+    <text x="357" y="122" text-anchor="middle" fill="white" font-size="12" font-weight="bold">51x faster</text>
 
-    <!-- Arrow from LanceDB to EmergentDB -->
-    <path d="M 490 150 Q 340 100 170 295" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="5,3"/>
-    <text x="340" y="90" text-anchor="middle" fill="#10b981" font-size="14" font-weight="bold">82x faster</text>
+    <!-- 82x faster arrow -->
+    <path d="M 500 214 Q 350 180 200 50" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,2"/>
+    <rect x="420" y="175" width="75" height="24" rx="4" fill="#22c55e"/>
+    <text x="457" y="192" text-anchor="middle" fill="white" font-size="12" font-weight="bold">82x faster</text>
   </g>
 
-  <!-- Recall badges -->
-  <g transform="translate(0, 420)">
-    <rect x="120" y="0" width="680" height="60" rx="8" fill="#1e293b"/>
-    <text x="460" y="22" text-anchor="middle" fill="#94a3b8" font-size="12">Recall@10 (Higher is Better)</text>
-
-    <!-- EmergentDB -->
-    <circle cx="200" cy="45" r="16" fill="#10b981"/>
-    <text x="200" y="50" text-anchor="middle" fill="white" font-size="11" font-weight="bold">100%</text>
-
-    <!-- EmergentDB m=16 -->
-    <circle cx="360" cy="45" r="16" fill="#10b981"/>
-    <text x="360" y="50" text-anchor="middle" fill="white" font-size="11" font-weight="bold">100%</text>
-
-    <!-- ChromaDB -->
-    <circle cx="520" cy="45" r="16" fill="#f59e0b"/>
-    <text x="520" y="50" text-anchor="middle" fill="white" font-size="10" font-weight="bold">99.8%</text>
-
-    <!-- LanceDB -->
-    <circle cx="680" cy="45" r="16" fill="#6366f1"/>
-    <text x="680" y="50" text-anchor="middle" fill="white" font-size="10" font-weight="bold">84.3%</text>
+  <!-- Legend -->
+  <g transform="translate(50, 365)">
+    <rect x="0" y="0" width="700" height="28" rx="4" fill="#1e293b"/>
+    <text x="20" y="19" fill="#94a3b8" font-size="11">Recall@10:</text>
+    <circle cx="110" cy="14" r="6" fill="#22c55e"/>
+    <text x="122" y="18" fill="#94a3b8" font-size="11">EmergentDB 100%</text>
+    <circle cx="250" cy="14" r="6" fill="#f59e0b"/>
+    <text x="262" y="18" fill="#94a3b8" font-size="11">ChromaDB 99.8%</text>
+    <circle cx="390" cy="14" r="6" fill="#8b5cf6"/>
+    <text x="402" y="18" fill="#94a3b8" font-size="11">LanceDB 84.3%</text>
+    <text x="530" y="18" fill="#64748b" font-size="10">|  Real Gemini embeddings, not random vectors</text>
   </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+    </marker>
+  </defs>
 </svg>
