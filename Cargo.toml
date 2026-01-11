@@ -6,6 +6,8 @@ members = [
     "crates/qd-engine",
     "crates/research-client",
     "crates/api-server",
+    "crates/grep-core",
+    "crates/grep-mcp",
 ]
 
 [workspace.package]

@@ -1,0 +1,21 @@
+[package]
+name = "grep-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Fast text/code search for LLM agents - no embeddings required"
+
+[dependencies]
+regex = "1.10"
+globset = "0.4"
+ignore = "0.4"
+memmap2 = "0.9"
+rayon = { workspace = true }
+parking_lot = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+dirs = "5.0"
+
+[dev-dependencies]
+tempfile = { workspace = true }

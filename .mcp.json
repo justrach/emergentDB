@@ -6,6 +6,10 @@
         "shadcn@latest",
         "mcp"
       ]
+    },
+    "grep": {
+      "command": "/Users/rachpradhan/emergentDB/target/release/grep-mcp",
+      "args": []
     }
   }
 }
