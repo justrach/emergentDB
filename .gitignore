@@ -45,3 +45,6 @@ tests/gemini_embeddings.json
 # API keys (never commit)
 *.env.local
 .api_keys
+
+# Personal/social media drafts
+socials.md
