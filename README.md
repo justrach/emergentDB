@@ -1,12 +1,26 @@
 # EmergentDB
 
-A self-optimizing vector database that uses MAP-Elites evolutionary algorithm to automatically discover the optimal index configuration for your workload.
+> **Proof of Concept** - A self-optimizing vector database that uses MAP-Elites evolutionary algorithm to automatically discover the optimal index configuration for your workload.
 
 **51-82x faster than competitors. 100% recall on real embeddings.**
 
 <p align="center">
-  <img src="public/benchmark.svg" alt="EmergentDB Benchmark Results" width="800"/>
+  <img src="public/benchmark.jpg" alt="EmergentDB Benchmark Results" width="800"/>
 </p>
+
+## What are Embeddings?
+
+Embeddings are numerical representations of data (text, images, audio) that capture semantic meaning. Similar concepts have similar embeddings, enabling semantic search - finding results by meaning rather than exact keyword matches.
+
+**New to embeddings?** Watch this excellent explainer: [What are Embeddings?](https://www.youtube.com/watch?v=wgfSDrqYMJ4)
+
+```
+"How do I fix a flat tire?" → [0.12, -0.34, 0.56, ...]  (768 numbers)
+"Changing a punctured wheel"  → [0.11, -0.33, 0.55, ...]  (very similar!)
+"Best pizza in NYC"           → [0.89, 0.12, -0.45, ...]  (very different)
+```
+
+EmergentDB stores these vectors and finds the most similar ones at blazing speed.
 
 ## The Problem
 

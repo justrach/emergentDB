@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-Generate a professional benchmark visualization image using Gemini.
+Generate a professional benchmark visualization image using Gemini 3 Pro.
 """
 
-import base64
 import mimetypes
 import os
 from google import genai
@@ -22,33 +21,43 @@ def generate():
         api_key=os.environ.get("GEMINI_API_KEY"),
     )
 
-    prompt = """Create a horizontal bar chart comparing vector database search latency.
+    prompt = """Create a stunning, professional benchmark comparison infographic for EmergentDB vector database.
 
-Title: "EmergentDB vs Competitors - 10K Vectors"
-Subtitle: "Search Latency (microseconds) | Lower = Faster"
+TITLE: "EmergentDB Performance Benchmark"
+SUBTITLE: "10,000 Vectors | 768 Dimensions | Real Gemini Embeddings | Proof of Concept"
 
-EXACT DATA - 4 horizontal bars from top to bottom:
+THE DATA (show as horizontal bar chart):
+- EmergentDB (HNSW m=8): 44 microseconds latency, 100% recall - BRIGHT GREEN
+- EmergentDB (HNSW m=16): 102 microseconds latency, 100% recall - GREEN
+- ChromaDB (HNSW): 2,259 microseconds (2.26ms) latency, 99.8% recall - ORANGE
+- LanceDB (IVF-PQ): 3,590 microseconds (3.59ms) latency, 84.3% recall - PURPLE
 
-1. "EmergentDB (m=8)" - 44μs - Use bright GREEN (#22c55e)
-2. "EmergentDB (m=16)" - 102μs - Use GREEN (#16a34a)
-3. "ChromaDB" - 2,259μs - Use ORANGE (#f59e0b)
-4. "LanceDB" - 3,590μs - Use PURPLE (#8b5cf6)
+KEY VISUAL: The EmergentDB bars should be DRAMATICALLY shorter than ChromaDB and LanceDB to show the 51x and 82x speed advantage. This contrast is the main point!
 
-IMPORTANT: The EmergentDB bars should be VERY SHORT (44 and 102) compared to ChromaDB (2,259) and LanceDB (3,590). This is the key visual - EmergentDB is 51x faster!
+CALLOUTS TO INCLUDE:
+- "51x FASTER" comparing EmergentDB to ChromaDB
+- "82x FASTER" comparing EmergentDB to LanceDB
+- Show recall percentages as badges or labels
 
-Add these labels:
-- Show "51x faster" with an arrow pointing from ChromaDB to EmergentDB
-- Show recall percentages: EmergentDB 100%, ChromaDB 99.8%, LanceDB 84.3%
+DESIGN STYLE:
+- Dark gradient background (dark blue/slate like #0f172a to #1e293b)
+- Modern, clean, minimalist tech aesthetic
+- Similar to Vercel, Linear, or Stripe marketing graphics
+- High contrast, easy to read
+- Professional typography
+- Subtle grid lines or visual guides
 
-Style:
-- Dark background (#111827)
-- White/light text
-- Clean, modern, minimal design
-- Wide format (like 1200x500)
-- Database names on the left of each bar
-- Latency values at the end of each bar"""
+IMPORTANT DETAILS:
+- Label each database clearly with its name AND index type
+- Show exact latency values on or near each bar
+- Include "Recall@10" percentages
+- Add note: "Lower latency = Better | Tested with real Gemini embeddings"
+- Make it look like a premium tech company's marketing material
+- Include "PROOF OF CONCEPT" badge or label somewhere
 
-    model = "gemini-2.0-flash-exp-image-generation"
+Make this image absolutely stunning and clear - it will be the hero image on a GitHub README. Make it wide format (landscape) suitable for a README header."""
+
+    model = "models/gemini-3-pro-image-preview"
     contents = [
         types.Content(
             role="user",
@@ -59,10 +68,7 @@ Style:
     ]
 
     generate_content_config = types.GenerateContentConfig(
-        response_modalities=[
-            "IMAGE",
-            "TEXT",
-        ],
+        response_modalities=["IMAGE", "TEXT"],
     )
 
     output_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
