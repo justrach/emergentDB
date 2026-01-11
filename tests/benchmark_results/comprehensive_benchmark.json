@@ -1,0 +1,164 @@
+{
+  "config": {
+    "vector_dim": 768,
+    "scales": [
+      1000,
+      10000,
+      50000
+    ],
+    "n_queries": 50,
+    "k": 10
+  },
+  "results": [
+    {
+      "database": "LanceDB",
+      "index_type": "flat",
+      "n_vectors": 1000,
+      "insert_time_ms": 9.101500269025564,
+      "insert_throughput": 109871.99587338619,
+      "search_time_us": 4840.489914640784,
+      "recall_at_10": 1.0,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "ivf_pq",
+      "n_vectors": 1000,
+      "insert_time_ms": 1139.341208152473,
+      "insert_throughput": 877.7001945023782,
+      "search_time_us": 3727.1891441196203,
+      "recall_at_10": 0.4639999999999999,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "ivf_hnsw",
+      "n_vectors": 1000,
+      "insert_time_ms": 102.86891600117087,
+      "insert_throughput": 9721.10953311317,
+      "search_time_us": 3593.8100330531597,
+      "recall_at_10": 0.59,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "ChromaDB",
+      "index_type": "hnsw",
+      "n_vectors": 1000,
+      "insert_time_ms": 115.54033309221268,
+      "insert_throughput": 8654.9862999088,
+      "search_time_us": 946.4333113282919,
+      "recall_at_10": 0.9939999999999999,
+      "notes": "HNSW-based with SQLite metadata"
+    },
+    {
+      "database": "ChromaDB",
+      "index_type": "hnsw_m32",
+      "n_vectors": 1000,
+      "insert_time_ms": 138.76095786690712,
+      "insert_throughput": 7206.6380585175275,
+      "search_time_us": 1020.8550468087196,
+      "recall_at_10": 1.0,
+      "notes": "HNSW-based with SQLite metadata"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "flat",
+      "n_vectors": 10000,
+      "insert_time_ms": 73.95879132673144,
+      "insert_throughput": 135210.43030330905,
+      "search_time_us": 7518.379976972938,
+      "recall_at_10": 1.0,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "ivf_pq",
+      "n_vectors": 10000,
+      "insert_time_ms": 7252.848290838301,
+      "insert_throughput": 1378.7686711483905,
+      "search_time_us": 3880.333313718438,
+      "recall_at_10": 0.25,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "ivf_hnsw",
+      "n_vectors": 10000,
+      "insert_time_ms": 412.83233277499676,
+      "insert_throughput": 24222.90892959257,
+      "search_time_us": 3780.0008058547974,
+      "recall_at_10": 0.3440000000000001,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "ChromaDB",
+      "index_type": "hnsw",
+      "n_vectors": 10000,
+      "insert_time_ms": 2237.5590410083532,
+      "insert_throughput": 4469.155815210807,
+      "search_time_us": 1959.856627508998,
+      "recall_at_10": 0.7680000000000001,
+      "notes": "HNSW-based with SQLite metadata"
+    },
+    {
+      "database": "ChromaDB",
+      "index_type": "hnsw_m32",
+      "n_vectors": 10000,
+      "insert_time_ms": 3019.886416848749,
+      "insert_throughput": 3311.3828202965988,
+      "search_time_us": 3176.7349783331156,
+      "recall_at_10": 0.976,
+      "notes": "HNSW-based with SQLite metadata"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "flat",
+      "n_vectors": 50000,
+      "insert_time_ms": 377.72233318537474,
+      "insert_throughput": 132372.36882009174,
+      "search_time_us": 12239.729203283787,
+      "recall_at_10": 1.0,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "ivf_pq",
+      "n_vectors": 50000,
+      "insert_time_ms": 23048.402165994048,
+      "insert_throughput": 2169.347776904498,
+      "search_time_us": 3936.859890818596,
+      "recall_at_10": 0.1779999999999999,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "LanceDB",
+      "index_type": "ivf_hnsw",
+      "n_vectors": 50000,
+      "insert_time_ms": 2618.315374944359,
+      "insert_throughput": 19096.248098479173,
+      "search_time_us": 4950.581723824143,
+      "recall_at_10": 0.28400000000000003,
+      "notes": "Arrow-based columnar storage"
+    },
+    {
+      "database": "ChromaDB",
+      "index_type": "hnsw",
+      "n_vectors": 50000,
+      "insert_time_ms": 14484.659750014544,
+      "insert_throughput": 3451.92782315441,
+      "search_time_us": 2391.1333363503218,
+      "recall_at_10": 0.48599999999999993,
+      "notes": "HNSW-based with SQLite metadata"
+    },
+    {
+      "database": "ChromaDB",
+      "index_type": "hnsw_m32",
+      "n_vectors": 50000,
+      "insert_time_ms": 46029.236916452646,
+      "insert_throughput": 1086.266107143046,
+      "search_time_us": 4236.6766184568405,
+      "recall_at_10": 0.7939999999999998,
+      "notes": "HNSW-based with SQLite metadata"
+    }
+  ]
+}

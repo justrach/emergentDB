@@ -13,8 +13,9 @@ use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 
 use vector_core::{
-    DistanceMetric, Embedding, FlatIndex, IndexConfig, NodeId, VectorIndex,
+    DistanceMetric, Embedding, NodeId, VectorIndex,
     RocksDbStorage, Storage, StorageConfig,
+    EmergentIndex, EmergentConfig, OptimizationPriority,
 };
 
 // ============================================================================
@@ -23,7 +24,7 @@ use vector_core::{
 
 /// Shared application state containing the vector index and optional persistent storage.
 pub struct AppState {
-    pub index: RwLock<FlatIndex>,
+    pub index: RwLock<EmergentIndex>,
     pub storage: Option<Arc<RocksDbStorage>>,
     pub dim: usize,
 }
@@ -31,9 +32,13 @@ pub struct AppState {
 impl AppState {
     /// Create a new in-memory only state (no persistence).
     pub fn new(dim: usize) -> Self {
-        let config = IndexConfig::flat(dim, DistanceMetric::Cosine);
+        let config = EmergentConfig {
+            dim,
+            metric: DistanceMetric::Cosine,
+            ..EmergentConfig::fast() // Use fast defaults for interactive use
+        };
         Self {
-            index: RwLock::new(FlatIndex::new(config)),
+            index: RwLock::new(EmergentIndex::new(config)),
             storage: None,
             dim,
         }
@@ -42,8 +47,12 @@ impl AppState {
     /// Create a new state with RocksDB persistence.
     /// On startup, loads all vectors from disk into the in-memory index.
     pub fn with_persistence(dim: usize, data_dir: PathBuf) -> Result<Self, String> {
-        let config = IndexConfig::flat(dim, DistanceMetric::Cosine);
-        let mut index = FlatIndex::new(config);
+        let config = EmergentConfig {
+            dim,
+            metric: DistanceMetric::Cosine,
+            ..EmergentConfig::fast()
+        };
+        let mut index = EmergentIndex::new(config);
 
         // Configure and open RocksDB storage
         let storage_config = StorageConfig {
@@ -104,7 +113,21 @@ pub async fn health_check(State(state): State<SharedState>) -> impl IntoResponse
         "vectors_count": index.len(),
         "dimension": state.dim,
         "persistence_enabled": state.storage.is_some(),
+        "evolved": index.is_evolved(),
     });
+
+    // Add evolution info if evolved
+    if index.is_evolved() {
+        if let Some(elite) = index.get_best_elite() {
+            response["active_index"] = serde_json::json!({
+                "type": format!("{}", elite.genome.index_type),
+                "recall": elite.metrics.recall_at_10,
+                "latency_us": elite.metrics.query_latency_us,
+                "fitness": elite.fitness,
+            });
+        }
+        response["archive_coverage"] = serde_json::json!(index.archive_coverage());
+    }
 
     // Add storage stats if persistence is enabled
     if let Some(ref storage) = state.storage {
@@ -354,24 +377,88 @@ pub async fn research_batch(Json(req): Json<ResearchBatchRequest>) -> impl IntoR
 }
 
 // ============================================================================
-// QD Operations (placeholders)
+// QD Operations - MAP-Elites Evolution
 // ============================================================================
 
 #[derive(Debug, Deserialize)]
 pub struct QdEvolveRequest {
-    pub base_queries: Vec<String>,
+    /// Optimization priority: "recall", "speed", "memory", "balanced"
     #[serde(default)]
-    pub generations: Option<usize>,
+    pub priority: Option<String>,
+    /// Whether to use thorough evolution (slower but better)
     #[serde(default)]
-    pub population: Option<usize>,
+    pub thorough: Option<bool>,
 }
 
-pub async fn qd_evolve(Json(req): Json<QdEvolveRequest>) -> impl IntoResponse {
-    Json(serde_json::json!({
-        "elites": [],
-        "coverage": 0.0,
-        "generations": req.generations.unwrap_or(100),
-    }))
+#[derive(Debug, Serialize)]
+pub struct QdEvolveResponse {
+    pub success: bool,
+    pub best_index_type: String,
+    pub recall: f32,
+    pub latency_us: f32,
+    pub fitness: f32,
+    pub archive_coverage: f32,
+    pub evolution_time_ms: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+pub async fn qd_evolve(
+    State(state): State<SharedState>,
+    Json(req): Json<QdEvolveRequest>,
+) -> impl IntoResponse {
+    let start = Instant::now();
+
+    // Check if we have enough vectors
+    {
+        let index = state.index.read();
+        if index.len() < 50 {
+            return Json(QdEvolveResponse {
+                success: false,
+                best_index_type: "none".to_string(),
+                recall: 0.0,
+                latency_us: 0.0,
+                fitness: 0.0,
+                archive_coverage: 0.0,
+                evolution_time_ms: 0,
+                error: Some(format!("Need at least 50 vectors to evolve, got {}", index.len())),
+            });
+        }
+    }
+
+    // Run evolution
+    let result = {
+        let index = state.index.read();
+        index.evolve()
+    };
+
+    match result {
+        Ok(elite) => {
+            let index = state.index.read();
+            Json(QdEvolveResponse {
+                success: true,
+                best_index_type: format!("{}", elite.genome.index_type),
+                recall: elite.metrics.recall_at_10,
+                latency_us: elite.metrics.query_latency_us,
+                fitness: elite.fitness,
+                archive_coverage: index.archive_coverage(),
+                evolution_time_ms: start.elapsed().as_millis() as u64,
+                error: None,
+            })
+        }
+        Err(e) => {
+            Json(QdEvolveResponse {
+                success: false,
+                best_index_type: "none".to_string(),
+                recall: 0.0,
+                latency_us: 0.0,
+                fitness: 0.0,
+                archive_coverage: 0.0,
+                evolution_time_ms: start.elapsed().as_millis() as u64,
+                error: Some(e.to_string()),
+            })
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -383,6 +470,147 @@ pub async fn qd_diverse_solutions(Json(req): Json<QdDiverseRequest>) -> impl Int
     Json(serde_json::json!({
         "solutions": [],
         "n": req.n,
+    }))
+}
+
+// ============================================================================
+// Index Configuration - Manual index type selection
+// ============================================================================
+
+#[derive(Debug, Deserialize)]
+pub struct IndexConfigureRequest {
+    /// Index type: "flat", "hnsw", "ivf"
+    pub index_type: String,
+    /// HNSW: neighbors per node (default: 16)
+    #[serde(default)]
+    pub hnsw_m: Option<usize>,
+    /// HNSW: ef_construction (default: 200)
+    #[serde(default)]
+    pub hnsw_ef_construction: Option<usize>,
+    /// HNSW: ef_search (default: 50)
+    #[serde(default)]
+    pub hnsw_ef_search: Option<usize>,
+    /// IVF: number of partitions (default: 256)
+    #[serde(default)]
+    pub ivf_partitions: Option<usize>,
+    /// IVF: partitions to search (default: 16)
+    #[serde(default)]
+    pub ivf_nprobe: Option<usize>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct IndexConfigureResponse {
+    pub success: bool,
+    pub index_type: String,
+    pub build_time_ms: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+pub async fn index_configure(
+    State(state): State<SharedState>,
+    Json(req): Json<IndexConfigureRequest>,
+) -> impl IntoResponse {
+    use vector_core::{IndexGenome, IndexType};
+
+    let start = Instant::now();
+
+    // Parse index type
+    let index_type = match req.index_type.to_lowercase().as_str() {
+        "flat" => IndexType::Flat,
+        "hnsw" => IndexType::Hnsw,
+        "ivf" => IndexType::Ivf,
+        other => {
+            return Json(IndexConfigureResponse {
+                success: false,
+                index_type: other.to_string(),
+                build_time_ms: 0,
+                error: Some(format!("Unknown index type: {}. Use 'flat', 'hnsw', or 'ivf'", other)),
+            });
+        }
+    };
+
+    // Build genome with provided or default parameters
+    let genome = IndexGenome {
+        index_type,
+        hnsw_m: req.hnsw_m.unwrap_or(16),
+        hnsw_ef_construction: req.hnsw_ef_construction.unwrap_or(200),
+        hnsw_ef_search: req.hnsw_ef_search.unwrap_or(50),
+        ivf_partitions: req.ivf_partitions.unwrap_or(256),
+        ivf_nprobe: req.ivf_nprobe.unwrap_or(16),
+    };
+
+    // Set the index type
+    let result = {
+        let index = state.index.read();
+        index.set_index_type(&genome)
+    };
+
+    match result {
+        Ok(()) => {
+            Json(IndexConfigureResponse {
+                success: true,
+                index_type: format!("{}", index_type),
+                build_time_ms: start.elapsed().as_millis() as u64,
+                error: None,
+            })
+        }
+        Err(e) => {
+            Json(IndexConfigureResponse {
+                success: false,
+                index_type: format!("{}", index_type),
+                build_time_ms: start.elapsed().as_millis() as u64,
+                error: Some(e.to_string()),
+            })
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct IndexStatusResponse {
+    pub active_type: Option<String>,
+    pub vector_count: usize,
+    pub evolved: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub params: Option<serde_json::Value>,
+}
+
+pub async fn index_status(State(state): State<SharedState>) -> impl IntoResponse {
+    let index = state.index.read();
+
+    let (active_type, params) = if let Some(genome) = index.get_active_genome() {
+        let params = match genome.index_type {
+            vector_core::IndexType::Flat => None,
+            vector_core::IndexType::Hnsw => Some(serde_json::json!({
+                "m": genome.hnsw_m,
+                "ef_construction": genome.hnsw_ef_construction,
+                "ef_search": genome.hnsw_ef_search,
+            })),
+            vector_core::IndexType::Ivf => Some(serde_json::json!({
+                "partitions": genome.ivf_partitions,
+                "nprobe": genome.ivf_nprobe,
+            })),
+        };
+        (Some(format!("{}", genome.index_type)), params)
+    } else {
+        (None, None)
+    };
+
+    Json(IndexStatusResponse {
+        active_type,
+        vector_count: index.len(),
+        evolved: index.is_evolved(),
+        params,
+    })
+}
+
+pub async fn index_reset(State(state): State<SharedState>) -> impl IntoResponse {
+    let index = state.index.read();
+    index.reset_index();
+
+    Json(serde_json::json!({
+        "success": true,
+        "message": "Index reset to brute-force mode"
     }))
 }
 

@@ -12,6 +12,7 @@ rayon = { workspace = true }
 parking_lot = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 tracing = { workspace = true }
 rocksdb = { workspace = true }
 num_cpus = { workspace = true }
@@ -33,3 +34,11 @@ path = "../../examples/pdf_benchmark.rs"
 [[example]]
 name = "scale_benchmark"
 path = "../../examples/scale_benchmark.rs"
+
+[[example]]
+name = "index_benchmark"
+path = "../../examples/index_benchmark.rs"
+
+[[example]]
+name = "gemini_benchmark"
+path = "../../examples/gemini_benchmark.rs"

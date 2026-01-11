@@ -2104,6 +2104,7 @@ dependencies = [
  "rayon",
  "rocksdb",
  "serde",
+ "serde_json",
  "tempfile",
  "thiserror",
  "tracing",

@@ -1,6 +1,7 @@
 //! API routes definition.
 
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{get, post},
     Router,
 };
@@ -16,6 +17,10 @@ pub fn create_router(state: SharedState) -> Router {
         .route("/vectors/search", post(handlers::vector_search))
         .route("/vectors/insert", post(handlers::vector_insert))
         .route("/vectors/batch_insert", post(handlers::vector_batch_insert))
+        // Index configuration
+        .route("/index/configure", post(handlers::index_configure))
+        .route("/index/status", get(handlers::index_status))
+        .route("/index/reset", post(handlers::index_reset))
         // Graph operations
         .route("/graph/concepts", post(handlers::add_concept))
         .route("/graph/concepts/{id}", get(handlers::get_concept))
@@ -46,4 +51,6 @@ pub fn create_router_with_middleware(state: SharedState) -> Router {
     create_router(state)
         .layer(TraceLayer::new_for_http())
         .layer(cors)
+        // Increase body size limit for large batch inserts (256MB)
+        .layer(DefaultBodyLimit::max(256 * 1024 * 1024))
 }

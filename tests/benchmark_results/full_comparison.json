@@ -1,0 +1,98 @@
+{
+  "1000": [
+    {
+      "database": "EmergentDB (flat)",
+      "insert_time": 0.21972084045410156,
+      "build_time": 0.0012249946594238281,
+      "avg_latency_ms": 2.08956241607666,
+      "p50_latency_ms": 2.0825862884521484,
+      "p99_latency_ms": 2.3279619216918945,
+      "avg_recall": 39.99999999999999,
+      "throughput": 4551.229632716129
+    },
+    {
+      "database": "LanceDB",
+      "insert_time": 0.009300947189331055,
+      "build_time": 1.405691146850586,
+      "avg_latency_ms": 3.7024927139282227,
+      "p50_latency_ms": 3.647446632385254,
+      "p99_latency_ms": 4.588735103607178,
+      "avg_recall": 90.30000000000004,
+      "throughput": 107515.93140396298
+    },
+    {
+      "database": "ChromaDB",
+      "insert_time": 0.1697089672088623,
+      "build_time": 0,
+      "avg_latency_ms": 0.7613897323608398,
+      "p50_latency_ms": 0.758051872253418,
+      "p99_latency_ms": 0.8743619918823243,
+      "avg_recall": 99.9,
+      "throughput": 5892.440549527894
+    }
+  ],
+  "5000": [
+    {
+      "database": "EmergentDB (flat)",
+      "insert_time": 1.0905687808990479,
+      "build_time": 0.0017321109771728516,
+      "avg_latency_ms": 3.7957024574279785,
+      "p50_latency_ms": 3.7654638290405273,
+      "p99_latency_ms": 4.448797702789307,
+      "avg_recall": 30.199999999999992,
+      "throughput": 4584.763554186906
+    },
+    {
+      "database": "LanceDB",
+      "insert_time": 0.03473806381225586,
+      "build_time": 4.1463329792022705,
+      "avg_latency_ms": 4.049389362335205,
+      "p50_latency_ms": 3.9550065994262695,
+      "p99_latency_ms": 5.0446081161499094,
+      "avg_recall": 85.80000000000003,
+      "throughput": 143934.33171816447
+    },
+    {
+      "database": "ChromaDB",
+      "insert_time": 1.1262967586517334,
+      "build_time": 0,
+      "avg_latency_ms": 1.5488028526306152,
+      "p50_latency_ms": 1.5439987182617188,
+      "p99_latency_ms": 1.6768884658813477,
+      "avg_recall": 99.8,
+      "throughput": 4439.327345650357
+    }
+  ],
+  "10000": [
+    {
+      "database": "EmergentDB (flat)",
+      "insert_time": 2.151939868927002,
+      "build_time": 0.0013561248779296875,
+      "avg_latency_ms": 7.1448588371276855,
+      "p50_latency_ms": 7.089972496032715,
+      "p99_latency_ms": 7.8939175605773935,
+      "avg_recall": 19.999999999999996,
+      "throughput": 4646.969994094765
+    },
+    {
+      "database": "LanceDB",
+      "insert_time": 0.0824439525604248,
+      "build_time": 7.361955165863037,
+      "avg_latency_ms": 3.5897278785705566,
+      "p50_latency_ms": 3.5583972930908203,
+      "p99_latency_ms": 4.041028022766116,
+      "avg_recall": 84.30000000000003,
+      "throughput": 121294.52421232233
+    },
+    {
+      "database": "ChromaDB",
+      "insert_time": 2.3848299980163574,
+      "build_time": 0,
+      "avg_latency_ms": 2.2588610649108887,
+      "p50_latency_ms": 2.229452133178711,
+      "p99_latency_ms": 2.7434372901916504,
+      "avg_recall": 99.8,
+      "throughput": 4193.1710051943965
+    }
+  ]
+}

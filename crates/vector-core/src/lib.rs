@@ -52,7 +52,10 @@ pub use index::flat::FlatIndex;
 pub use index::hnsw::HnswIndex;
 pub use index::ivf::IvfIndex;
 pub use index::pq::PqIndex;
-pub use index::emergent::{EmergentIndex, EmergentConfig, IndexGenome, IndexType, OptimizationPriority, Elite};
+pub use index::emergent::{
+    EmergentIndex, EmergentConfig, IndexGenome, IndexType, IndexPreset,
+    OptimizationPriority, Elite, PrecomputedElitesGrid, PrecomputedElite, SerializableElite
+};
 pub use storage::{RocksDbStorage, Storage, StorageConfig, StorageError};
 
 use serde::{Deserialize, Serialize};

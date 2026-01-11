@@ -46,6 +46,557 @@ impl std::fmt::Display for IndexType {
     }
 }
 
+/// Pre-evolved preset configurations for common use cases.
+/// These are battle-tested configurations that skip the evolution process.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum IndexPreset {
+    /// Brute-force flat index. 100% recall, O(n) search.
+    /// Best for: Small datasets (<10K vectors), perfect accuracy requirements.
+    Flat,
+
+    /// Fast HNSW with low memory footprint.
+    /// Best for: Speed-critical applications, moderate recall acceptable.
+    /// Config: m=8, ef_construction=100, ef_search=20
+    HnswFast,
+
+    /// Balanced HNSW with good recall/speed tradeoff.
+    /// Best for: General purpose, most use cases.
+    /// Config: m=16, ef_construction=200, ef_search=50
+    HnswBalanced,
+
+    /// High-recall HNSW for accuracy-critical applications.
+    /// Best for: When 99%+ recall is required.
+    /// Config: m=32, ef_construction=300, ef_search=100
+    HnswAccurate,
+
+    /// Maximum quality HNSW with high memory usage.
+    /// Best for: When recall must be as close to 100% as possible.
+    /// Config: m=48, ef_construction=400, ef_search=200
+    HnswMaxQuality,
+
+    /// Fast IVF with low nprobe.
+    /// Best for: Very large datasets (>1M), speed over accuracy.
+    /// Config: 256 partitions, nprobe=8
+    IvfFast,
+
+    /// Balanced IVF with moderate nprobe.
+    /// Best for: Large datasets with moderate recall requirements.
+    /// Config: 256 partitions, nprobe=32
+    IvfBalanced,
+
+    /// High-recall IVF with high nprobe.
+    /// Best for: Large datasets needing good recall.
+    /// Config: 512 partitions, nprobe=64
+    IvfAccurate,
+}
+
+impl IndexPreset {
+    /// Convert preset to a concrete IndexGenome configuration.
+    pub fn to_genome(&self) -> IndexGenome {
+        match self {
+            IndexPreset::Flat => IndexGenome {
+                index_type: IndexType::Flat,
+                ..Default::default()
+            },
+            IndexPreset::HnswFast => IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 8,
+                hnsw_ef_construction: 100,
+                hnsw_ef_search: 20,
+                ..Default::default()
+            },
+            IndexPreset::HnswBalanced => IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 16,
+                hnsw_ef_construction: 200,
+                hnsw_ef_search: 50,
+                ..Default::default()
+            },
+            IndexPreset::HnswAccurate => IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 32,
+                hnsw_ef_construction: 300,
+                hnsw_ef_search: 100,
+                ..Default::default()
+            },
+            IndexPreset::HnswMaxQuality => IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 48,
+                hnsw_ef_construction: 400,
+                hnsw_ef_search: 200,
+                ..Default::default()
+            },
+            IndexPreset::IvfFast => IndexGenome {
+                index_type: IndexType::Ivf,
+                ivf_partitions: 256,
+                ivf_nprobe: 8,
+                ..Default::default()
+            },
+            IndexPreset::IvfBalanced => IndexGenome {
+                index_type: IndexType::Ivf,
+                ivf_partitions: 256,
+                ivf_nprobe: 32,
+                ..Default::default()
+            },
+            IndexPreset::IvfAccurate => IndexGenome {
+                index_type: IndexType::Ivf,
+                ivf_partitions: 512,
+                ivf_nprobe: 64,
+                ..Default::default()
+            },
+        }
+    }
+
+    /// Get all available presets.
+    pub fn all() -> Vec<Self> {
+        vec![
+            IndexPreset::Flat,
+            IndexPreset::HnswFast,
+            IndexPreset::HnswBalanced,
+            IndexPreset::HnswAccurate,
+            IndexPreset::HnswMaxQuality,
+            IndexPreset::IvfFast,
+            IndexPreset::IvfBalanced,
+            IndexPreset::IvfAccurate,
+        ]
+    }
+
+    /// Get recommended preset based on dataset size and priority.
+    pub fn recommend(num_vectors: usize, priority: &str) -> Self {
+        match (num_vectors, priority) {
+            // Small datasets: use Flat for perfect recall
+            (0..=5_000, _) => IndexPreset::Flat,
+
+            // Medium datasets: HNSW variants
+            (5_001..=100_000, "speed") => IndexPreset::HnswFast,
+            (5_001..=100_000, "accuracy") => IndexPreset::HnswAccurate,
+            (5_001..=100_000, _) => IndexPreset::HnswBalanced,
+
+            // Large datasets: IVF or HNSW depending on priority
+            (100_001..=1_000_000, "speed") => IndexPreset::IvfFast,
+            (100_001..=1_000_000, "accuracy") => IndexPreset::HnswMaxQuality,
+            (100_001..=1_000_000, _) => IndexPreset::IvfBalanced,
+
+            // Very large: IVF is the only practical option
+            (_, "accuracy") => IndexPreset::IvfAccurate,
+            (_, "speed") => IndexPreset::IvfFast,
+            (_, _) => IndexPreset::IvfBalanced,
+        }
+    }
+}
+
+impl std::fmt::Display for IndexPreset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            IndexPreset::Flat => write!(f, "Flat (Brute Force)"),
+            IndexPreset::HnswFast => write!(f, "HNSW Fast (m=8, ef=20)"),
+            IndexPreset::HnswBalanced => write!(f, "HNSW Balanced (m=16, ef=50)"),
+            IndexPreset::HnswAccurate => write!(f, "HNSW Accurate (m=32, ef=100)"),
+            IndexPreset::HnswMaxQuality => write!(f, "HNSW Max Quality (m=48, ef=200)"),
+            IndexPreset::IvfFast => write!(f, "IVF Fast (nprobe=8)"),
+            IndexPreset::IvfBalanced => write!(f, "IVF Balanced (nprobe=32)"),
+            IndexPreset::IvfAccurate => write!(f, "IVF Accurate (nprobe=64)"),
+        }
+    }
+}
+
+// ============================================================================
+// PRE-COMPUTED ELITES GRID
+// Industry-standard configurations based on OpenSearch, Milvus, and ANN-benchmarks
+// Reference: https://opensearch.org/blog/a-practical-guide-to-selecting-hnsw-hyperparameters/
+// ============================================================================
+
+/// A pre-computed elite configuration with expected performance metrics.
+/// These are derived from industry benchmarks and research papers.
+#[derive(Debug, Clone)]
+pub struct PrecomputedElite {
+    /// The index configuration
+    pub genome: IndexGenome,
+    /// Expected recall@10 (0.0 - 1.0)
+    pub expected_recall: f32,
+    /// Expected query latency factor (1.0 = baseline flat search)
+    pub latency_factor: f32,
+    /// Memory overhead factor (1.0 = vector data only)
+    pub memory_factor: f32,
+    /// Recommended minimum dataset size
+    pub min_vectors: usize,
+    /// Recommended maximum dataset size
+    pub max_vectors: usize,
+    /// Human-readable description
+    pub description: &'static str,
+}
+
+/// Pre-computed elites grid - a 3D archive indexed by [recall_tier][speed_tier][scale_tier].
+/// This replaces runtime evolution with battle-tested configurations.
+pub struct PrecomputedElitesGrid {
+    /// Grid dimensions: [recall: 0=low, 1=medium, 2=high][speed: 0=fast, 1=balanced, 2=accurate][scale: 0=small, 1=medium, 2=large]
+    grid: Vec<Vec<Vec<PrecomputedElite>>>,
+}
+
+impl PrecomputedElitesGrid {
+    /// Create the pre-computed elites grid with industry-standard configurations.
+    /// Based on benchmarks from OpenSearch, Milvus, Pinecone, and ANN-benchmarks.
+    pub fn new() -> Self {
+        let mut grid = vec![vec![vec![]; 3]; 3];
+
+        // =====================================================================
+        // RECALL TIER 0: Speed Priority (70-85% recall acceptable)
+        // =====================================================================
+
+        // Speed + Fast + Small (< 10K)
+        grid[0][0].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Flat,
+                ..Default::default()
+            },
+            expected_recall: 1.0,
+            latency_factor: 1.0,
+            memory_factor: 1.0,
+            min_vectors: 0,
+            max_vectors: 10_000,
+            description: "Flat index - perfect for small datasets",
+        });
+
+        // Speed + Fast + Medium (10K - 100K)
+        grid[0][1].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 8,
+                hnsw_ef_construction: 64,
+                hnsw_ef_search: 16,
+                ..Default::default()
+            },
+            expected_recall: 0.75,
+            latency_factor: 0.05,
+            memory_factor: 1.3,
+            min_vectors: 10_000,
+            max_vectors: 100_000,
+            description: "Ultra-fast HNSW (OpenSearch low config)",
+        });
+
+        // Speed + Fast + Large (100K - 1M)
+        grid[0][2].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Ivf,
+                ivf_partitions: 256,
+                ivf_nprobe: 4,
+                ..Default::default()
+            },
+            expected_recall: 0.70,
+            latency_factor: 0.02,
+            memory_factor: 1.1,
+            min_vectors: 100_000,
+            max_vectors: 10_000_000,
+            description: "Fast IVF for large-scale speed priority",
+        });
+
+        // =====================================================================
+        // RECALL TIER 1: Balanced (85-95% recall)
+        // =====================================================================
+
+        // Balanced + Fast + Small
+        grid[1][0].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 12,
+                hnsw_ef_construction: 100,
+                hnsw_ef_search: 32,
+                ..Default::default()
+            },
+            expected_recall: 0.90,
+            latency_factor: 0.08,
+            memory_factor: 1.4,
+            min_vectors: 1_000,
+            max_vectors: 50_000,
+            description: "Balanced HNSW for small-medium datasets",
+        });
+
+        // Balanced + Balanced + Medium (OpenSearch recommended)
+        grid[1][1].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 16,
+                hnsw_ef_construction: 128,
+                hnsw_ef_search: 64,
+                ..Default::default()
+            },
+            expected_recall: 0.92,
+            latency_factor: 0.10,
+            memory_factor: 1.5,
+            min_vectors: 10_000,
+            max_vectors: 500_000,
+            description: "OpenSearch default - good all-rounder",
+        });
+
+        // Balanced + Accurate + Large
+        grid[1][2].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Ivf,
+                ivf_partitions: 512,
+                ivf_nprobe: 32,
+                ..Default::default()
+            },
+            expected_recall: 0.88,
+            latency_factor: 0.05,
+            memory_factor: 1.2,
+            min_vectors: 100_000,
+            max_vectors: 10_000_000,
+            description: "Balanced IVF for million-scale",
+        });
+
+        // =====================================================================
+        // RECALL TIER 2: High Recall (95-99%+ recall)
+        // =====================================================================
+
+        // High + Fast + Small
+        grid[2][0].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 24,
+                hnsw_ef_construction: 200,
+                hnsw_ef_search: 100,
+                ..Default::default()
+            },
+            expected_recall: 0.97,
+            latency_factor: 0.15,
+            memory_factor: 1.8,
+            min_vectors: 1_000,
+            max_vectors: 100_000,
+            description: "High-recall HNSW (Milvus recommended)",
+        });
+
+        // High + Balanced + Medium (OpenSearch high config)
+        grid[2][1].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 32,
+                hnsw_ef_construction: 256,
+                hnsw_ef_search: 128,
+                ..Default::default()
+            },
+            expected_recall: 0.98,
+            latency_factor: 0.20,
+            memory_factor: 2.0,
+            min_vectors: 10_000,
+            max_vectors: 1_000_000,
+            description: "High-recall HNSW (OpenSearch high config)",
+        });
+
+        // High + Accurate + Large (Maximum quality)
+        grid[2][2].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 48,
+                hnsw_ef_construction: 400,
+                hnsw_ef_search: 200,
+                ..Default::default()
+            },
+            expected_recall: 0.99,
+            latency_factor: 0.30,
+            memory_factor: 2.5,
+            min_vectors: 10_000,
+            max_vectors: 5_000_000,
+            description: "Maximum quality HNSW (research-grade)",
+        });
+
+        // Add ultra-high quality variant
+        grid[2][2].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 64,
+                hnsw_ef_construction: 512,
+                hnsw_ef_search: 300,
+                ..Default::default()
+            },
+            expected_recall: 0.995,
+            latency_factor: 0.40,
+            memory_factor: 3.0,
+            min_vectors: 50_000,
+            max_vectors: 2_000_000,
+            description: "Ultra-high quality (99.5% recall target)",
+        });
+
+        // Add OpenSearch portfolio configurations
+        grid[1][1].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 32,
+                hnsw_ef_construction: 128,
+                hnsw_ef_search: 32,
+                ..Default::default()
+            },
+            expected_recall: 0.90,
+            latency_factor: 0.08,
+            memory_factor: 1.7,
+            min_vectors: 10_000,
+            max_vectors: 500_000,
+            description: "OpenSearch portfolio config #2",
+        });
+
+        grid[2][1].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 64,
+                hnsw_ef_construction: 128,
+                hnsw_ef_search: 128,
+                ..Default::default()
+            },
+            expected_recall: 0.96,
+            latency_factor: 0.18,
+            memory_factor: 2.2,
+            min_vectors: 10_000,
+            max_vectors: 1_000_000,
+            description: "OpenSearch portfolio config #4",
+        });
+
+        grid[2][2].push(PrecomputedElite {
+            genome: IndexGenome {
+                index_type: IndexType::Hnsw,
+                hnsw_m: 128,
+                hnsw_ef_construction: 256,
+                hnsw_ef_search: 256,
+                ..Default::default()
+            },
+            expected_recall: 0.998,
+            latency_factor: 0.50,
+            memory_factor: 4.0,
+            min_vectors: 100_000,
+            max_vectors: 1_000_000,
+            description: "OpenSearch portfolio config #5 (max quality)",
+        });
+
+        Self { grid }
+    }
+
+    /// Get all elites in a specific cell of the grid.
+    pub fn get_cell(&self, recall_tier: usize, speed_tier: usize) -> &[PrecomputedElite] {
+        &self.grid[recall_tier.min(2)][speed_tier.min(2)]
+    }
+
+    /// Select the best elite for given requirements.
+    pub fn select_best(
+        &self,
+        num_vectors: usize,
+        min_recall: f32,
+        max_latency_factor: f32,
+    ) -> Option<&PrecomputedElite> {
+        // Determine tiers based on requirements
+        let recall_tier = if min_recall >= 0.95 { 2 } else if min_recall >= 0.85 { 1 } else { 0 };
+        let speed_tier = if max_latency_factor <= 0.1 { 0 } else if max_latency_factor <= 0.25 { 1 } else { 2 };
+
+        // Search in the target cell first
+        let candidates = self.get_cell(recall_tier, speed_tier);
+
+        candidates
+            .iter()
+            .filter(|e| {
+                e.expected_recall >= min_recall
+                    && e.latency_factor <= max_latency_factor
+                    && num_vectors >= e.min_vectors
+                    && num_vectors <= e.max_vectors
+            })
+            .max_by(|a, b| a.expected_recall.partial_cmp(&b.expected_recall).unwrap())
+    }
+
+    /// Get all elites that match the given dataset size.
+    pub fn get_for_scale(&self, num_vectors: usize) -> Vec<&PrecomputedElite> {
+        self.grid
+            .iter()
+            .flatten()
+            .flatten()
+            .filter(|e| num_vectors >= e.min_vectors && num_vectors <= e.max_vectors)
+            .collect()
+    }
+
+    /// Get the recommended configuration based on dataset size and priority.
+    pub fn recommend(&self, num_vectors: usize, priority: &str) -> &PrecomputedElite {
+        let (recall_tier, speed_tier) = match priority {
+            "speed" | "fast" => (0, 0),
+            "balanced" | "default" => (1, 1),
+            "accuracy" | "recall" | "high" => (2, 1),
+            "max" | "maximum" | "ultra" => (2, 2),
+            _ => (1, 1), // default to balanced
+        };
+
+        // Get candidates and find best match for scale
+        let candidates = self.get_cell(recall_tier, speed_tier);
+        candidates
+            .iter()
+            .filter(|e| num_vectors >= e.min_vectors && num_vectors <= e.max_vectors)
+            .next()
+            .unwrap_or_else(|| {
+                // Fallback to any matching scale
+                self.get_for_scale(num_vectors)
+                    .into_iter()
+                    .next()
+                    .unwrap_or(&self.grid[1][1][0]) // Ultimate fallback
+            })
+    }
+
+    /// Get total number of elite configurations.
+    pub fn len(&self) -> usize {
+        self.grid.iter().flatten().map(|v| v.len()).sum()
+    }
+
+    /// Check if grid is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Get all unique configurations for benchmarking.
+    pub fn all_elites(&self) -> Vec<&PrecomputedElite> {
+        self.grid.iter().flatten().flatten().collect()
+    }
+
+    /// Convert to serializable format for saving.
+    pub fn to_serializable(&self) -> Vec<SerializableElite> {
+        self.all_elites()
+            .iter()
+            .map(|e| SerializableElite {
+                index_type: match e.genome.index_type {
+                    IndexType::Flat => "flat".to_string(),
+                    IndexType::Hnsw => "hnsw".to_string(),
+                    IndexType::Ivf => "ivf".to_string(),
+                },
+                hnsw_m: e.genome.hnsw_m,
+                hnsw_ef_construction: e.genome.hnsw_ef_construction,
+                hnsw_ef_search: e.genome.hnsw_ef_search,
+                ivf_partitions: e.genome.ivf_partitions,
+                ivf_nprobe: e.genome.ivf_nprobe,
+                expected_recall: e.expected_recall,
+                latency_factor: e.latency_factor,
+                memory_factor: e.memory_factor,
+                min_vectors: e.min_vectors,
+                max_vectors: e.max_vectors,
+                description: e.description.to_string(),
+            })
+            .collect()
+    }
+}
+
+impl Default for PrecomputedElitesGrid {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Serializable elite configuration for JSON export.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SerializableElite {
+    pub index_type: String,
+    pub hnsw_m: usize,
+    pub hnsw_ef_construction: usize,
+    pub hnsw_ef_search: usize,
+    pub ivf_partitions: usize,
+    pub ivf_nprobe: usize,
+    pub expected_recall: f32,
+    pub latency_factor: f32,
+    pub memory_factor: f32,
+    pub min_vectors: usize,
+    pub max_vectors: usize,
+    pub description: String,
+}
+
 /// A genome representing an index configuration.
 #[derive(Debug, Clone)]
 pub struct IndexGenome {
@@ -1369,6 +1920,161 @@ impl EmergentIndex {
             *self.best_elite.write() = Some(best);
         }
         Ok(())
+    }
+
+    /// Manually set the index type and rebuild with specified configuration.
+    /// This allows users to bypass evolution and use a specific index type.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let genome = IndexGenome {
+    ///     index_type: IndexType::Hnsw,
+    ///     hnsw_m: 16,
+    ///     hnsw_ef_construction: 200,
+    ///     hnsw_ef_search: 50,
+    ///     ..Default::default()
+    /// };
+    /// index.set_index_type(&genome)?;
+    /// ```
+    pub fn set_index_type(&self, genome: &IndexGenome) -> Result<()> {
+        let vectors = self.vectors.read();
+        if vectors.is_empty() {
+            return Err(VectorError::IndexError("No vectors to index".to_string()));
+        }
+        self.build_active_index_with_vectors(genome, &vectors)?;
+        *self.active_genome.write() = Some(genome.clone());
+        Ok(())
+    }
+
+    /// Get the current active genome (index configuration).
+    pub fn get_active_genome(&self) -> Option<IndexGenome> {
+        self.active_genome.read().clone()
+    }
+
+    /// Clear the active index and reset to brute-force mode.
+    pub fn reset_index(&self) {
+        *self.active_index.write() = None;
+        *self.active_genome.write() = None;
+        *self.evolved.write() = false;
+        *self.best_elite.write() = None;
+    }
+
+    /// Apply a pre-evolved preset configuration.
+    /// This skips evolution and directly applies a battle-tested configuration.
+    ///
+    /// # Example
+    /// ```ignore
+    /// use vector_core::{EmergentIndex, EmergentConfig, IndexPreset};
+    ///
+    /// let mut index = EmergentIndex::new(EmergentConfig::default());
+    /// // ... insert vectors ...
+    /// index.apply_preset(IndexPreset::HnswBalanced)?;
+    /// ```
+    pub fn apply_preset(&self, preset: IndexPreset) -> Result<()> {
+        let genome = preset.to_genome();
+        self.set_index_type(&genome)?;
+        tracing::info!(preset = %preset, "Applied preset configuration");
+        Ok(())
+    }
+
+    /// Get the recommended preset based on current data size.
+    /// Priority can be "speed", "accuracy", or "balanced" (default).
+    pub fn recommend_preset(&self, priority: &str) -> IndexPreset {
+        let num_vectors = self.vectors.read().len();
+        IndexPreset::recommend(num_vectors, priority)
+    }
+
+    /// Apply the recommended preset for current data.
+    /// This automatically selects the best preset based on dataset size and priority.
+    pub fn apply_recommended_preset(&self, priority: &str) -> Result<IndexPreset> {
+        let preset = self.recommend_preset(priority);
+        self.apply_preset(preset)?;
+        Ok(preset)
+    }
+
+    // ========================================================================
+    // PRE-COMPUTED ELITES GRID (Industry-Standard Configurations)
+    // ========================================================================
+
+    /// Apply a configuration from the pre-computed elites grid.
+    /// This uses industry-standard configurations from OpenSearch, Milvus, etc.
+    ///
+    /// # Arguments
+    /// * `elite` - The pre-computed elite configuration to apply
+    ///
+    /// # Example
+    /// ```ignore
+    /// let grid = PrecomputedElitesGrid::new();
+    /// let elite = grid.recommend(100_000, "balanced");
+    /// index.apply_precomputed_elite(elite)?;
+    /// ```
+    pub fn apply_precomputed_elite(&self, elite: &PrecomputedElite) -> Result<()> {
+        self.set_index_type(&elite.genome)?;
+        tracing::info!(
+            description = elite.description,
+            expected_recall = %elite.expected_recall,
+            "Applied pre-computed elite configuration"
+        );
+        Ok(())
+    }
+
+    /// Apply the best configuration from the pre-computed elites grid based on requirements.
+    ///
+    /// # Arguments
+    /// * `min_recall` - Minimum acceptable recall (0.0 - 1.0)
+    /// * `max_latency_factor` - Maximum acceptable latency factor (1.0 = flat baseline)
+    ///
+    /// # Example
+    /// ```ignore
+    /// // Get 95%+ recall with at most 20% of flat search latency
+    /// index.apply_best_precomputed(0.95, 0.2)?;
+    /// ```
+    pub fn apply_best_precomputed(&self, min_recall: f32, max_latency_factor: f32) -> Result<PrecomputedElite> {
+        let num_vectors = self.vectors.read().len();
+        let grid = PrecomputedElitesGrid::new();
+
+        let elite = grid
+            .select_best(num_vectors, min_recall, max_latency_factor)
+            .ok_or_else(|| VectorError::IndexError(
+                format!("No configuration found for {} vectors with recall>={} and latency<={}",
+                    num_vectors, min_recall, max_latency_factor)
+            ))?
+            .clone();
+
+        self.apply_precomputed_elite(&elite)?;
+        Ok(elite)
+    }
+
+    /// Apply the recommended pre-computed configuration based on dataset size and priority.
+    /// This is the easiest way to get a good configuration without tuning.
+    ///
+    /// # Arguments
+    /// * `priority` - One of: "speed", "balanced", "accuracy", "max"
+    ///
+    /// # Example
+    /// ```ignore
+    /// // Insert vectors first...
+    /// index.apply_recommended_from_grid("balanced")?;
+    /// ```
+    pub fn apply_recommended_from_grid(&self, priority: &str) -> Result<PrecomputedElite> {
+        let num_vectors = self.vectors.read().len();
+        let grid = PrecomputedElitesGrid::new();
+
+        let elite = grid.recommend(num_vectors, priority).clone();
+        self.apply_precomputed_elite(&elite)?;
+        Ok(elite)
+    }
+
+    /// Get all pre-computed configurations that match the current dataset size.
+    /// Useful for benchmarking or letting users choose from available options.
+    pub fn get_matching_precomputed(&self) -> Vec<PrecomputedElite> {
+        let num_vectors = self.vectors.read().len();
+        let grid = PrecomputedElitesGrid::new();
+
+        grid.get_for_scale(num_vectors)
+            .into_iter()
+            .cloned()
+            .collect()
     }
 
     // ========================================================================

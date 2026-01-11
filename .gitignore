@@ -37,3 +37,11 @@ examples/ingestion/*.db
 # Logs
 *.log
 logs/
+
+# Large embedding files (regenerate with scale_gemini_embeddings.py)
+tests/gemini_embeddings_*.json
+tests/gemini_embeddings.json
+
+# API keys (never commit)
+*.env.local
+.api_keys
