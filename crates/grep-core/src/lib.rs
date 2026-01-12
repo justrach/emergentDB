@@ -14,11 +14,17 @@ mod index;
 mod search;
 mod ranking;
 mod repo;
+pub mod load_qd;
+pub mod search_qd;
 
 pub use index::{CodeIndex, IndexConfig, FileEntry};
 pub use search::{SearchQuery, SearchResult, Match, Searcher, search, search_regex};
 pub use ranking::{RankingStrategy, RankingConfig};
 pub use repo::{RepoExplorer, RepoInfo, FileTree, explore};
+
+// QD-optimized loading and searching
+pub use load_qd::{LoadGenome, LoadStrategy, Loader, LoadedFile, LOAD_ELITES};
+pub use search_qd::{SearchGenome, SearchEngine, SEARCH_ELITES, TrigramIndex, BM25, EmergentSearch};
 
 use thiserror::Error;
 

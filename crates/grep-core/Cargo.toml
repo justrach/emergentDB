@@ -10,12 +10,16 @@ regex = "1.10"
 globset = "0.4"
 ignore = "0.4"
 memmap2 = "0.9"
+memchr = "2.7"
 rayon = { workspace = true }
 parking_lot = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 dirs = "5.0"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [dev-dependencies]
 tempfile = { workspace = true }

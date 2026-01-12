@@ -739,6 +739,8 @@ dependencies = [
  "dirs",
  "globset",
  "ignore",
+ "libc",
+ "memchr",
  "memmap2",
  "parking_lot",
  "rayon",
