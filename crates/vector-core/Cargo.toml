@@ -42,3 +42,11 @@ path = "../../examples/index_benchmark.rs"
 [[example]]
 name = "gemini_benchmark"
 path = "../../examples/gemini_benchmark.rs"
+
+[[example]]
+name = "rag_benchmark"
+path = "../../examples/rag_benchmark.rs"
+
+[[example]]
+name = "comprehensive_rag_benchmark"
+path = "../../examples/comprehensive_rag_benchmark.rs"

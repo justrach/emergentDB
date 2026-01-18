@@ -48,3 +48,5 @@ tests/gemini_embeddings.json
 
 # Personal/social media drafts
 socials.md
+socials-grep.md
+reply.md
